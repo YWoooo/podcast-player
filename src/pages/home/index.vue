@@ -21,7 +21,8 @@ const { podcast } = storeToRefs(podcastStore)
     v-for="episode in podcast.items"
     :key="episode.guid"
     class="flex justify-center"
-    :to="`/episode/${episode.guid}`">
+    :to="`/episode/${episode.guid}`"
+    data-test="episode">
     <img 
       class="w-20 mr-4"
       :src="episode.thumbnail" 
