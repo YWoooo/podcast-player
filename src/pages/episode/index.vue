@@ -6,36 +6,26 @@ import usePodcastStore from "@/stores/podcast.store";
 const route = useRoute();
 const router = useRouter();
 const podcastStore = usePodcastStore();
+const audioPlayer = ref<HTMLAudioElement | null>(null)
 const seekValue = ref(0)
 const isPlaying = ref(false)
 
 const episodeIndex = computed(() => podcastStore.podcast.items.findIndex((e) => e.guid === route.params.guid))
 const episode = computed(() => podcastStore.podcast.items?.[episodeIndex.value])
 
-function getAudioPlayer() {
-  return document.getElementById('audioPlayer') as HTMLAudioElement
-}
 function play() {
-  const audioPlayer = getAudioPlayer()
-
-  if (audioPlayer) {
-    audioPlayer.play()
-    isPlaying.value = true
-  }
+  audioPlayer.value?.play()
+  isPlaying.value = true
 }
 function pause() {
-  const audioPlayer = getAudioPlayer()
-  
-  if (audioPlayer) {
-    audioPlayer.pause()
-    isPlaying.value = false
-  }
+  audioPlayer.value?.pause()
+  isPlaying.value = false
 }
 function onSeek() {
-  const audioPlayer = getAudioPlayer()
-  const seekto = audioPlayer.duration * (seekValue.value / 100);
-
-  audioPlayer.currentTime = seekto;
+  if (audioPlayer.value) {
+    const seekto = audioPlayer.value.duration * (seekValue.value / 100);
+    audioPlayer.value.currentTime = seekto;    
+  }
 }
 function onEnded() {
   const nextEpisode = podcastStore.podcast.items?.[episodeIndex.value + 1]
@@ -43,12 +33,13 @@ function onEnded() {
   if (nextEpisode) {
     router.replace(`/episode/${nextEpisode.guid}`)
     seekValue.value = 0
-
-    setTimeout(() => {
-      play()
-    }, 600)
+    setTimeout(() => play(), 600)
   }
 }
+
+defineExpose({
+  audioPlayer
+})
 
 </script>
 
@@ -95,7 +86,7 @@ function onEnded() {
       @change="onSeek"
     />
     <audio
-      id="audioPlayer"
+      ref="audioPlayer"
       :src="episode.enclosure.link"
       @ended="onEnded"
     />
